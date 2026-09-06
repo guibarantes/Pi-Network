@@ -9,10 +9,13 @@ import QuickMealSuggestions from '@/components/quick-meal-suggestions';
 import ReceiptScanner from '@/components/receipt-scanner';
 import ConversationWidget from '@/components/conversation-widget';
 import LocalNewsStrip from '@/components/local-news-strip';
+import SettingsPage from '@/components/settings-page';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('home');
   const [userLocation] = useState({ state: 'SP', municipality: 'São Paulo' });
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-card/30 pb-20">
@@ -28,9 +31,14 @@ export default function HomePage() {
               <p className="text-xs text-muted-foreground">Refeições & Política Local</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon">
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:block max-w-48 truncate text-xs text-muted-foreground">
+              {user?.displayName || user?.email}
+            </span>
+          <Button variant="ghost" size="icon" aria-label="Abrir configurações" onClick={() => setActiveTab('settings')}>
             <Settings className="w-5 h-5" />
           </Button>
+          </div>
         </div>
       </header>
 
@@ -137,6 +145,10 @@ export default function HomePage() {
           {/* News Tab */}
           <TabsContent value="news">
             <LocalNewsStrip />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <SettingsPage />
           </TabsContent>
         </Tabs>
       </main>

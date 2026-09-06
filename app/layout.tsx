@@ -6,9 +6,9 @@ import { AppWrapper } from "@/components/app-wrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Made with App Studio",
-  description: "Pi Network app",
-    generator: 'v0.app'
+  title: "Bento",
+  description: "Assistente para compras, despensa e preparo de refeições",
+  generator: "Bento",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <style>{`
 html {

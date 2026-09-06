@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Settings, Bell, Mic, MapPin, Zap, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function SettingsPage() {
+  const { signOut, user } = useAuth();
   const [preferences, setPreferences] = useState({
     voiceEnabled: true,
     voiceLanguage: 'pt-BR',
@@ -21,7 +23,9 @@ export default function SettingsPage() {
     },
   });
 
-  const handleToggle = (key: string) => {
+  const handleToggle = (
+    key: 'voiceEnabled' | 'notificationsEnabled' | 'mealReminders' | 'newsAlerts',
+  ) => {
     setPreferences((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -211,6 +215,12 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-lg">Conta</h2>
 
           <Card className="p-4 space-y-4 border-border rounded-xl">
+            <div className="py-2">
+              <h3 className="font-medium text-sm">{user?.displayName || 'Usuário Bento'}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{user?.email}</p>
+            </div>
+
+            <div className="border-t border-border" />
             <div className="flex items-center justify-between py-2">
               <div>
                 <h3 className="font-medium text-sm">Usuário Premium</h3>
@@ -225,6 +235,7 @@ export default function SettingsPage() {
               <Button
                 variant="outline"
                 className="w-full rounded-lg gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/20"
+                onClick={() => void signOut()}
               >
                 <LogOut className="w-4 h-4" />
                 Sair
