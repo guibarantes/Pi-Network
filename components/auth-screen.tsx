@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { FirebaseError } from "firebase/app";
+import { useEffect, useState, type FormEvent } from "react";
+import { AuthError } from "@supabase/supabase-js";
 import {
   ArrowLeft,
   KeyRound,
@@ -16,28 +16,35 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-type AuthMode = "login" | "signup" | "reset";
+type AuthMode = "login" | "signup" | "reset" | "update";
 
 const authMessages: Record<string, string> = {
-  "auth/email-already-in-use": "Este e-mail já possui uma conta.",
-  "auth/invalid-credential": "E-mail ou senha incorretos.",
-  "auth/invalid-email": "Digite um endereço de e-mail válido.",
-  "auth/missing-password": "Digite sua senha.",
-  "auth/network-request-failed": "Não foi possível conectar. Verifique sua internet.",
-  "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
-  "auth/user-disabled": "Esta conta foi desativada.",
-  "auth/weak-password": "A senha precisa ter pelo menos 6 caracteres.",
+  email_exists: "Este e-mail já possui uma conta. Entre com sua senha.",
+  email_address_invalid: "Digite um endereço de e-mail válido.",
+  invalid_credentials: "E-mail ou senha incorretos.",
+  over_email_send_rate_limit: "Muitos e-mails enviados. Aguarde alguns minutos e tente novamente.",
+  over_request_rate_limit: "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+  user_already_exists: "Este e-mail já possui uma conta. Entre com sua senha.",
+  user_banned: "Esta conta foi desativada.",
+  weak_password: "A senha precisa ter pelo menos 6 caracteres.",
 };
 
 function getAuthMessage(error: unknown) {
-  if (error instanceof FirebaseError) {
-    return authMessages[error.code] ?? "Não foi possível concluir. Tente novamente.";
+  if (error instanceof AuthError) {
+    return authMessages[error.code ?? ""] ?? "Não foi possível concluir. Tente novamente.";
   }
   return error instanceof Error ? error.message : "Ocorreu um erro inesperado.";
 }
 
 export function AuthScreen() {
-  const { configurationError, resetPassword, signIn, signUp } = useAuth();
+  const {
+    configurationError,
+    isPasswordRecovery,
+    resetPassword,
+    signIn,
+    signUp,
+    updatePassword,
+  } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,6 +52,10 @@ export function AuthScreen() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isPasswordRecovery) setMode("update");
+  }, [isPasswordRecovery]);
 
   const changeMode = (nextMode: AuthMode) => {
     setMode(nextMode);
@@ -66,6 +77,10 @@ export function AuthScreen() {
         await resetPassword(email.trim());
         setSuccess("Enviamos o link para redefinir sua senha.");
       }
+      if (mode === "update") {
+        await updatePassword(password);
+        setSuccess("Senha atualizada com sucesso.");
+      }
     } catch (authError) {
       setError(getAuthMessage(authError));
     } finally {
@@ -78,7 +93,9 @@ export function AuthScreen() {
       ? "Entre na sua conta"
       : mode === "signup"
         ? "Crie sua conta"
-        : "Recupere sua senha";
+        : mode === "reset"
+          ? "Recupere sua senha"
+          : "Crie uma nova senha";
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 via-background to-amber-50 px-4 py-10 flex items-center justify-center">
@@ -113,7 +130,9 @@ export function AuthScreen() {
             <p className="text-sm text-muted-foreground">
               {mode === "reset"
                 ? "Informe seu e-mail para receber o link de recuperação."
-                : "Use seu e-mail e sua senha. A Pi Network não é necessária."}
+                : mode === "update"
+                  ? "Digite a nova senha que deseja usar nos aplicativos Bento."
+                  : "Use seu e-mail e sua senha. A Pi Network não é necessária."}
             </p>
           </div>
 
@@ -121,7 +140,7 @@ export function AuthScreen() {
             <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
               <p className="font-semibold">Autenticação aguardando configuração</p>
               <p className="mt-1">
-                Adicione as variáveis do Firebase indicadas no arquivo <code>.env.example</code>.
+                Adicione as variáveis do Supabase indicadas no arquivo <code>.env.example</code>.
               </p>
             </div>
           ) : (
@@ -143,21 +162,23 @@ export function AuthScreen() {
                 </label>
               )}
 
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">E-mail</span>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="voce@exemplo.com"
-                    autoComplete="email"
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </label>
+              {mode !== "update" && (
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium">E-mail</span>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="voce@exemplo.com"
+                      autoComplete="email"
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </label>
+              )}
 
               {mode !== "reset" && (
                 <label className="block space-y-2">
@@ -169,7 +190,7 @@ export function AuthScreen() {
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="Mínimo de 6 caracteres"
-                      autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                      autoComplete={mode === "login" ? "current-password" : "new-password"}
                       minLength={6}
                       className="pl-10"
                       required
@@ -199,8 +220,9 @@ export function AuthScreen() {
                   ? "Entrar"
                   : mode === "signup"
                     ? "Criar conta"
-                    : "Enviar link"
-                }
+                    : mode === "reset"
+                      ? "Enviar link"
+                      : "Salvar nova senha"}
               </Button>
             </form>
           )}

@@ -223,12 +223,16 @@ export default function SettingsPage() {
             <div className="border-t border-border" />
             <div className="flex items-center justify-between py-2">
               <div>
-                <h3 className="font-medium text-sm">Usuário Premium</h3>
+                <h3 className="font-medium text-sm">
+                  {user?.role === 'admin' ? 'Administrador do Cozinha' : 'Usuário do Cozinha'}
+                </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Acesso a todas as receitas e análises avançadas
                 </p>
               </div>
-              <Badge className="bg-primary/20 text-primary">Ativo</Badge>
+              <Badge className="bg-primary/20 text-primary">
+                {user?.role === 'admin' ? 'Admin' : 'Ativo'}
+              </Badge>
             </div>
 
             <div className="border-t border-border pt-4">
