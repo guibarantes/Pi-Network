@@ -132,7 +132,7 @@ export function AuthScreen() {
                 ? "Informe seu e-mail para receber o link de recuperação."
                 : mode === "update"
                   ? "Digite a nova senha que deseja usar nos aplicativos Bento."
-                  : "Use seu e-mail e sua senha. A Pi Network não é necessária."}
+                  : "Use seu e-mail e sua senha para continuar."}
             </p>
           </div>
 
@@ -250,10 +250,6 @@ export function AuthScreen() {
             </p>
           )}
         </Card>
-
-        <p className="text-center text-xs text-muted-foreground">
-          Acesso independente de carteira ou criptomoeda.
-        </p>
       </div>
     </main>
   );
