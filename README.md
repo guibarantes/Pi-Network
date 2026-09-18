@@ -1,7 +1,7 @@
 # Bento
 
 Plataforma para organizar compras, despensa e preparo de refeições. O acesso é feito por
-e-mail e senha, sem integração ou autenticação da Pi Network.
+e-mail e senha.
 
 ## Executar localmente
 
